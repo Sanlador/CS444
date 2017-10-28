@@ -27,6 +27,11 @@ static int noop_dispatch(struct request_queue *q, int force)
 		rq = list_entry(nd->queue.next, struct request, queuelist);
 		list_del_init(&rq->queuelist);
 		elv_dispatch_sort(q, rq);
+		printk("Disk head position: %i\n", blk_rq_pos(rq));
+		if(rq_data_dir(rq) == READ)
+			printk("Reading\n");
+		else
+			printk("Writing\n");
 		return 1;
 	}
 	return 0;
