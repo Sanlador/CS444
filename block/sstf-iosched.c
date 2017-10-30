@@ -1,5 +1,5 @@
 /*
- * elevator noop
+ * elevator clook
  */
 #include <linux/blkdev.h>
 #include <linux/elevator.h>
@@ -8,19 +8,19 @@
 #include <linux/slab.h>
 #include <linux/init.h>
 
-struct noop_data {
+struct clook_data {
 	struct list_head queue;
 };
 
-static void noop_merged_requests(struct request_queue *q, struct request *rq,
+static void clook_merged_requests(struct request_queue *q, struct request *rq,
 				 struct request *next)
 {
 	list_del_init(&next->queuelist);
 }
 
-static int noop_dispatch(struct request_queue *q, int force)
+static int clook_dispatch(struct request_queue *q, int force)
 {
-	struct noop_data *nd = q->elevator->elevator_data;
+	struct clook_data *nd = q->elevator->elevator_data;
 
 	if (!list_empty(&nd->queue)) {
 		struct request *rq;
@@ -37,17 +37,38 @@ static int noop_dispatch(struct request_queue *q, int force)
 	return 0;
 }
 
-static void noop_add_request(struct request_queue *q, struct request *rq)
+static void clook_add_request(struct request_queue *q, struct request *rq)
 {
-	struct noop_data *nd = q->elevator->elevator_data;
-
+	struct loop_data *nd = q->elevator->elevator_data;
+	
+	//determine current disk head position
+	int disk_head_pos = blk_rq_pos(rq);
+	
+	//iterate through request queue
+	list_for_each(struct list_head *temp_head = NULL, &nd->queue) {
+		struct request *temp_req = list_entry(temp_head, struct request, queuelist);
+		
+		if(blk_rq_pos(rq) < blk_rq_pos(temp_req) && blk_rq_pos(temp_req) < disk_head_pos) {
+			//will later serve to add tail at temp_head
+			printk("Inserting; is smaller than disk head and current iteration\n");
+			//list_add_tail(&rq->queuelist, temp_head);
+		}
+		else if(blk_rq_pos(rq) < blk_rq_pos(temp_req) || blk_rq_pos(temp_req) < disk_head_pos) {
+			//will later serve to add tail at temp_head
+			printk("Position or current spot is smaller than head\n");
+			//list_add_tail(&rq->queuelist, temp_head);
+		}
+	}
+	
+	//If the request gets here, that means it will be 
+	//placed at the end of the queue based on disk position
 	list_add_tail(&rq->queuelist, &nd->queue);
 }
 
 static struct request *
-noop_former_request(struct request_queue *q, struct request *rq)
+clook_former_request(struct request_queue *q, struct request *rq)
 {
-	struct noop_data *nd = q->elevator->elevator_data;
+	struct clook_data *nd = q->elevator->elevator_data;
 
 	if (rq->queuelist.prev == &nd->queue)
 		return NULL;
@@ -55,18 +76,18 @@ noop_former_request(struct request_queue *q, struct request *rq)
 }
 
 static struct request *
-noop_latter_request(struct request_queue *q, struct request *rq)
+clook_latter_request(struct request_queue *q, struct request *rq)
 {
-	struct noop_data *nd = q->elevator->elevator_data;
+	struct clook_data *nd = q->elevator->elevator_data;
 
 	if (rq->queuelist.next == &nd->queue)
 		return NULL;
 	return list_entry(rq->queuelist.next, struct request, queuelist);
 }
 
-static int noop_init_queue(struct request_queue *q, struct elevator_type *e)
+static int clook_init_queue(struct request_queue *q, struct elevator_type *e)
 {
-	struct noop_data *nd;
+	struct clook_data *nd;
 	struct elevator_queue *eq;
 
 	eq = elevator_alloc(q, e);
@@ -88,40 +109,40 @@ static int noop_init_queue(struct request_queue *q, struct elevator_type *e)
 	return 0;
 }
 
-static void noop_exit_queue(struct elevator_queue *e)
+static void clook_exit_queue(struct elevator_queue *e)
 {
-	struct noop_data *nd = e->elevator_data;
+	struct clook_data *nd = e->elevator_data;
 
 	BUG_ON(!list_empty(&nd->queue));
 	kfree(nd);
 }
 
-static struct elevator_type elevator_noop = {
+static struct elevator_type elevator_clook = {
 	.ops = {
-		.elevator_merge_req_fn		= noop_merged_requests,
-		.elevator_dispatch_fn		= noop_dispatch,
-		.elevator_add_req_fn		= noop_add_request,
-		.elevator_former_req_fn		= noop_former_request,
-		.elevator_latter_req_fn		= noop_latter_request,
-		.elevator_init_fn		= noop_init_queue,
-		.elevator_exit_fn		= noop_exit_queue,
+		.elevator_merge_req_fn		= clook_merged_requests,
+		.elevator_dispatch_fn		= clook_dispatch,
+		.elevator_add_req_fn		= clook_add_request,
+		.elevator_former_req_fn		= clook_former_request,
+		.elevator_latter_req_fn		= clook_latter_request,
+		.elevator_init_fn		= clook_init_queue,
+		.elevator_exit_fn		= clook_exit_queue,
 	},
-	.elevator_name = "noop",
+	.elevator_name = "clook",
 	.elevator_owner = THIS_MODULE,
 };
 
-static int __init noop_init(void)
+static int __init clook_init(void)
 {
-	return elv_register(&elevator_noop);
+	return elv_register(&elevator_clook);
 }
 
-static void __exit noop_exit(void)
+static void __exit clook_exit(void)
 {
-	elv_unregister(&elevator_noop);
+	elv_unregister(&elevator_clook);
 }
 
-module_init(noop_init);
-module_exit(noop_exit);
+module_init(clook_init);
+module_exit(clook_exit);
 
 
 MODULE_AUTHOR("Jens Axboe");
