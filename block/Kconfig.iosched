@@ -2,6 +2,17 @@ if BLOCK
 
 menu "IO Schedulers"
 
+config IOSCHED_LOOK
+	bool
+	default y
+	---help---
+	  The look I/O scheduler is effectively the same as the scan I/O
+	  scheduler, but with one crucial difference. Instead of moving
+	  the read/write head of the drive to the inner and outer bounds of
+	  the disk per sweeping cycle, it simply changes direction when there
+	  are no more reads or writes to be performed in its direction of
+	  travel.
+
 config IOSCHED_NOOP
 	bool
 	default y
@@ -53,7 +64,10 @@ choice
 		bool "CFQ" if IOSCHED_CFQ=y
 
 	config DEFAULT_NOOP
-		bool "No-op"
+		bool "No-op" if IOSCHED_NOOP=y
+
+	config DEFAULT_LOOK
+		bool "Look"
 
 endchoice
 
@@ -62,6 +76,7 @@ config DEFAULT_IOSCHED
 	default "deadline" if DEFAULT_DEADLINE
 	default "cfq" if DEFAULT_CFQ
 	default "noop" if DEFAULT_NOOP
+	default "look" if DEFAULT_LOOK
 
 endmenu
 

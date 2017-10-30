@@ -27,11 +27,12 @@ static int clook_dispatch(struct request_queue *q, int force)
 		rq = list_entry(nd->queue.next, struct request, queuelist);
 		list_del_init(&rq->queuelist);
 		elv_dispatch_sort(q, rq);
-		printk("Disk head position: %i\n", blk_rq_pos(rq));
+		printk( KERN_ALERT "Disk head position: %i\n",
+		        (int) blk_rq_pos(rq));
 		if(rq_data_dir(rq) == READ)
-			printk("Reading\n");
+			printk( KERN_ALERT "Reading\n");
 		else
-			printk("Writing\n");
+			printk( KERN_ALERT "Writing\n");
 		return 1;
 	}
 	return 0;
@@ -79,6 +80,7 @@ static struct request *
 clook_latter_request(struct request_queue *q, struct request *rq)
 {
 	struct clook_data *nd = q->elevator->elevator_data;
+	struct look_data *nd = q->elevator->elevator_data;
 
 	if (rq->queuelist.next == &nd->queue)
 		return NULL;
@@ -144,7 +146,6 @@ static void __exit clook_exit(void)
 module_init(clook_init);
 module_exit(clook_exit);
 
-
-MODULE_AUTHOR("Jens Axboe");
+MODULE_AUTHOR("Team 2: Richard Cunard & Braxton Cuneo");
 MODULE_LICENSE("GPL");
-MODULE_DESCRIPTION("No-op IO scheduler");
+MODULE_DESCRIPTION("Look IO scheduler");
