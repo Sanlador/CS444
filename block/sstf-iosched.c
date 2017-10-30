@@ -10,6 +10,8 @@
 
 struct clook_data {
 	struct list_head queue;
+	//add pointer to maintain indexing in place of queue
+	struct list_head index;
 };
 
 static void clook_merged_requests(struct request_queue *q, struct request *rq,
@@ -24,7 +26,8 @@ static int clook_dispatch(struct request_queue *q, int force)
 
 	if (!list_empty(&nd->queue)) {
 		struct request *rq;
-		rq = list_entry(nd->queue.next, struct request, queuelist);
+		//changed queue to index
+		rq = list_entry(nd->index.next, struct request, queuelist);
 		list_del_init(&rq->queuelist);
 		elv_dispatch_sort(q, rq);
 		printk( KERN_ALERT "Disk head position: %i\n",
@@ -71,7 +74,8 @@ clook_former_request(struct request_queue *q, struct request *rq)
 {
 	struct clook_data *nd = q->elevator->elevator_data;
 
-	if (rq->queuelist.prev == &nd->queue)
+	//use index in place of queue
+	if (rq->queuelist.prev == &nd->index)
 		return NULL;
 	return list_entry(rq->queuelist.prev, struct request, queuelist);
 }
@@ -82,7 +86,8 @@ clook_latter_request(struct request_queue *q, struct request *rq)
 	struct clook_data *nd = q->elevator->elevator_data;
 	struct look_data *nd = q->elevator->elevator_data;
 
-	if (rq->queuelist.next == &nd->queue)
+	//use index in place of queue
+	if (rq->queuelist.next == &nd->index)
 		return NULL;
 	return list_entry(rq->queuelist.next, struct request, queuelist);
 }
@@ -104,6 +109,7 @@ static int clook_init_queue(struct request_queue *q, struct elevator_type *e)
 	eq->elevator_data = nd;
 
 	INIT_LIST_HEAD(&nd->queue);
+	nd->index = nd->queue;
 
 	spin_lock_irq(q->queue_lock);
 	q->elevator = eq;
