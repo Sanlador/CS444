@@ -43,30 +43,18 @@ static int clook_dispatch(struct request_queue *q, int force)
 
 static void clook_add_request(struct request_queue *q, struct request *rq)
 {
-	struct loop_data *nd = q->elevator->elevator_data;
-	
-	//determine current disk head position
-	int disk_head_pos = blk_rq_pos(rq);
-	
-	//iterate through request queue
-	//use index in place of queue
-	list_for_each(struct list_head *temp_head = NULL, &nd->index) {
-		struct request *temp_req = list_entry(temp_head, struct request, queuelist);
-		
-		if(blk_rq_pos(rq) < blk_rq_pos(temp_req) && blk_rq_pos(temp_req) < disk_head_pos) {
-			//will later serve to add tail at temp_head
-			printk("Inserting; is smaller than disk head and current iteration\n");
-			//list_add_tail(&rq->queuelist, temp_head);
-		}
-		else if(blk_rq_pos(rq) < blk_rq_pos(temp_req) || blk_rq_pos(temp_req) < disk_head_pos) {
-			//will later serve to add tail at temp_head
-			printk("Position or current spot is smaller than head\n");
-			//list_add_tail(&rq->queuelist, temp_head);
-		}
+	struct look_data *nd = q->elevator->elevator_data;
+	struct request *temp_req = list_entry(nd->queue.next, struct request, queuelist);
+	if(list_empty(nd->queue)){
+		//Adds to empty queue and returns
+	}	
+
+	while (blk_rq_pos(rq) > blk_rq_pos(temp_req){
+		//use list_entry to iterate through queue
+		temp_req = list_entry(temp_req->queuelist.next, struct request, queuelist);	
 	}
 	
-	//If the request gets here, that means it will be 
-	//placed at the end of the queue based on disk position
+	//Unless list is empty, function will reach here and insert into queue
 	list_add_tail(&rq->queuelist, &nd->queue);
 }
 
