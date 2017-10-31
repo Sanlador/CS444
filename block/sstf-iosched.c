@@ -43,19 +43,22 @@ static int clook_dispatch(struct request_queue *q, int force)
 
 static void clook_add_request(struct request_queue *q, struct request *rq)
 {
-	struct look_data *nd = q->elevator->elevator_data;
+	struct clook_data *nd = q->elevator->elevator_data;
 	struct request *temp_req = list_entry(nd->queue.next, struct request, queuelist);
-	if(list_empty(nd->queue)){
+	if(list_empty(&(nd->queue))){
 		//Adds to empty queue and returns
+		list_add(rq, temp_req->queuelist.next);
+		int disk_head_pos = blk_rq_pos(rq);
 	}	
 
-	while (blk_rq_pos(rq) > blk_rq_pos(temp_req){
+	while (blk_rq_pos(rq) > blk_rq_pos(temp_req)){
 		//use list_entry to iterate through queue
 		temp_req = list_entry(temp_req->queuelist.next, struct request, queuelist);	
 	}
 	
 	//Unless list is empty, function will reach here and insert into queue
-	list_add_tail(&rq->queuelist, &nd->queue);
+	list_add(rq, temp_req->queuelist.next);
+	int disk_head_pos = blk_rq_pos(rq);
 }
 
 static struct request *
@@ -73,7 +76,6 @@ static struct request *
 clook_latter_request(struct request_queue *q, struct request *rq)
 {
 	struct clook_data *nd = q->elevator->elevator_data;
-	struct look_data *nd = q->elevator->elevator_data;
 
 	//use index in place of queue
 	if (rq->queuelist.next == &nd->index)
