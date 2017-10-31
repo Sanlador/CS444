@@ -49,7 +49,8 @@ static void clook_add_request(struct request_queue *q, struct request *rq)
 	int disk_head_pos = blk_rq_pos(rq);
 	
 	//iterate through request queue
-	list_for_each(struct list_head *temp_head = NULL, &nd->queue) {
+	//use index in place of queue
+	list_for_each(struct list_head *temp_head = NULL, &nd->index) {
 		struct request *temp_req = list_entry(temp_head, struct request, queuelist);
 		
 		if(blk_rq_pos(rq) < blk_rq_pos(temp_req) && blk_rq_pos(temp_req) < disk_head_pos) {
