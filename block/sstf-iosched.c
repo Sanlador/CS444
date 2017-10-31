@@ -48,7 +48,14 @@ static void clook_add_request(struct request_queue *q, struct request *rq)
 	if(list_empty(&(nd->queue))){
 		//Adds to empty queue and returns
 		list_add(rq, temp_req->queuelist.next);
-		int disk_head_pos = blk_rq_pos(rq);
+		int disk_head_pos;
+		disk_head_pos = blk_rq_pos(rq);
+		if (rq_data_dir(rq) == READ){
+			printk("Writing to disk position %i\n", disk_head_pos);
+		}
+		else {
+			printk("Reading from disk positiob %i\n", disk_head_pos);
+		}
 	}	
 
 	while (blk_rq_pos(rq) > blk_rq_pos(temp_req)){
@@ -58,7 +65,15 @@ static void clook_add_request(struct request_queue *q, struct request *rq)
 	
 	//Unless list is empty, function will reach here and insert into queue
 	list_add(rq, temp_req->queuelist.next);
-	int disk_head_pos = blk_rq_pos(rq);
+	int disk_head_pos;
+	disk_head_pos = blk_rq_pos(rq);
+
+	if (rq_data_dir(rq) == READ){
+		printk("Writing to disk position %i\n", disk_head_pos);
+	}
+	else {
+		printk("Reading from disk positiob %i\n", disk_head_pos);
+	}
 }
 
 static struct request *
