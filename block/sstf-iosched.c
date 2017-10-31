@@ -43,6 +43,7 @@ static int clook_dispatch(struct request_queue *q, int force)
 
 static void clook_add_request(struct request_queue *q, struct request *rq)
 {
+	printk("Boo!\n");
 	struct clook_data *nd = q->elevator->elevator_data;
 	struct request *temp_req = list_entry(nd->queue.next, struct request, queuelist);
 	int disk_head_pos;
