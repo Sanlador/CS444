@@ -57,6 +57,7 @@ static void clook_add_request(struct request_queue *q, struct request *rq)
 		else {
 			printk("Reading from disk positiob %i\n", disk_head_pos);
 		}
+		return;
 	}	
 
 	while (blk_rq_pos(rq) > blk_rq_pos(temp_req)){
