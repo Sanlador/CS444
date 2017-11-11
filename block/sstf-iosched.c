@@ -23,12 +23,14 @@ static void clook_merged_requests(struct request_queue *q, struct request *rq,
 static int clook_dispatch(struct request_queue *q, int force)
 {
 	struct clook_data *nd = q->elevator->elevator_data;
-
+	int result = 0;
 	if (!list_empty(&nd->queue)) {
 		struct request *rq;
 		//changed queue to index
 		rq = list_entry(nd->index.next, struct request, queuelist);
 		list_del_init(&rq->queuelist);
+		printk( KERN_ALERT "Queuelist value: %x", rq->queuelist.next);
+		printk( KERN_ALERT "Queuelist value: %x", &rq->queuelist);
 		elv_dispatch_sort(q, rq);
 		printk( KERN_ALERT "Disk head position: %i\n",
 		        (int) blk_rq_pos(rq));
@@ -36,45 +38,53 @@ static int clook_dispatch(struct request_queue *q, int force)
 			printk( KERN_ALERT "Reading\n");
 		else
 			printk( KERN_ALERT "Writing\n");
-		return 1;
+		result = 1;
 	}
-	return 0;
+	return result;
 }
 
 static void clook_add_request(struct request_queue *q, struct request *rq)
 {
-	printk("Boo!\n");
-	struct clook_data *nd = q->elevator->elevator_data;
-	struct request *temp_req = list_entry(nd->queue.next, struct request, queuelist);
+	struct clook_data *nd;
 	int disk_head_pos;
+	struct request *temp_req; 
+	
+	nd = q->elevator->elevator_data;
+	temp_req = list_entry(nd->queue.next, struct request, queuelist);
+	printk("Boo!\n");
+	
 	if(list_empty(&(nd->queue))){
 		//Adds to empty queue and returns
-		list_add(rq, temp_req->queuelist.next);
+		list_add(&rq->queuelist, &nd->queue);
 		disk_head_pos = blk_rq_pos(rq);
 		if (rq_data_dir(rq) == READ){
-			printk("Writing to disk position %i\n", disk_head_pos);
+			printk(	KERN_ALERT "Writing to disk position %i\n",
+				disk_head_pos);
 		}
 		else {
-			printk("Reading from disk positiob %i\n", disk_head_pos);
+			printk(	KERN_ALERT "Reading from disk positiob %i\n", 
+				disk_head_pos);
 		}
 		return;
 	}	
 
-	while (blk_rq_pos(rq) > blk_rq_pos(temp_req)){
+	while ( blk_rq_pos(rq) > blk_rq_pos(temp_req) ){
 		//use list_entry to iterate through queue
-		temp_req = list_entry(temp_req->queuelist.next, struct request, queuelist);	
+		temp_req = list_entry(	temp_req->queuelist.next, 
+		      			struct request, queuelist );	
 	}
 	
 	//Unless list is empty, function will reach here and insert into queue
-	list_add(rq, temp_req->queuelist.next);
+	list_add(&rq->queuelist, temp_req->queuelist.next);
 	disk_head_pos = blk_rq_pos(rq);
 
 	if (rq_data_dir(rq) == READ){
 		printk("Writing to disk position %i\n", disk_head_pos);
 	}
 	else {
-		printk("Reading from disk positiob %i\n", disk_head_pos);
+		printk("Reading from disk positio %i\n", disk_head_pos);
 	}
+
 }
 
 static struct request *
@@ -161,4 +171,4 @@ module_exit(clook_exit);
 
 MODULE_AUTHOR("Team 2: Richard Cunard & Braxton Cuneo");
 MODULE_LICENSE("GPL");
-MODULE_DESCRIPTION("Look IO scheduler");
+MODULE_DESCRIPTION("CLook IO scheduler");
