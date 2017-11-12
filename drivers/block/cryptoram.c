@@ -43,6 +43,9 @@ static int logical_block_size = 512;
 module_param(logical_block_size, int, 0);
 static int nsectors = 1024; /* How big the drive is */
 module_param(nsectors, int, 0);
+static char* crypto_key = "Cwm fjord bank glyphs vext quiz.";
+module_param(crypto_key, charp, 0);
+
 
 /*
  * We can tweak our hardware sector size, but the kernel talks to us
@@ -66,8 +69,6 @@ static struct cryptoram_device {
 	u8 *data;
 	struct gendisk *gd;
 } Device;
-
-
 
 
 
@@ -144,6 +145,19 @@ static int __init cryptoram_init(void) {
 	Device.data = vmalloc(Device.size);
 	if (Device.data == NULL)
 		return -ENOMEM;
+	
+	Device.ECB = NULL;
+	Device.ECB = crypto_alloc_cipher(	"aes",
+	      					CRYPTO_ALG_TYPE_CIPHER,
+	    					CRYPTO_TFM_REQ_MAY_SLEEP);
+	if (Device.ECB == NULL){
+		printk(KERN_ERR "Unable to load AES transform");
+		return -ENOMEM;
+	}
+	crypto_cipher_setkey(Device.ECB,crypto_key,32);
+	Device.blk = crypto_cipher_blocksize(Device.ECB);
+
+	
 	/*
 	 * Get a request queue.
 	 */
@@ -151,6 +165,7 @@ static int __init cryptoram_init(void) {
 	if (Queue == NULL)
 		goto out;
 	blk_queue_logical_block_size(Queue, logical_block_size);
+	
 	/*
 	 * Get registered.
 	 */
