@@ -77,21 +77,46 @@ static void cryptoram_cipher(	struct cryptoram_device *dev,
 {
 
 	int i;
+	char* before = kmalloc(sizeof(u8)*(len+1),GFP_KERNEL);
+	char* after = kmalloc(sizeof(u8)*(len+1),GFP_KERNEL);
+	char* check = kmalloc(sizeof(u8)*(len+1),GFP_KERNEL);
+	before[len]=0;
+	after[len]=0;
+	check[len]=0;
 	if (write){
 		for(i = 0; i < len; i+=dev->blk){
 			crypto_cipher_encrypt_one(	dev->ECB,
 			      				&(code[i]),
 							&(plain[i]));
-
+			crypto_cipher_decrypt_one(	dev->ECB,
+							&(check[i]),
+							&(code[i]));
+		
 		}
+		memcpy(before,plain,len);
+		memcpy(after,code,len);
+		printk(KERN_ERR "\n\nENCRYPTNG DATA:\n\nBEFORE:\n%s",before);
+		printk(KERN_ERR "\n\nAFTER:\n%s",after);
+		printk(KERN_ERR "\n\nCHECK:\n%s\n",check);
 	}
 	else{
 		for(i = 0; i < len; i+=dev->blk){
 			crypto_cipher_decrypt_one(	dev->ECB,
 			      				&(plain[i]),
 							&(code[i]));
+			crypto_cipher_encrypt_one(	dev->ECB,
+							&(check[i]),
+							&(plain[i]));
 		}
+		memcpy(before,code,len);
+		memcpy(after,plain,len);
+		printk(KERN_ERR "\n\nDECRYPTING DATA:\n\nBEFORE:\n%s",before);
+		printk("\n\nAFTER:\n%s",after);
+		printk("\n\nCHECK:\n%s\n",check);
 	}
+	kfree(before);
+	kfree(after);
+	kfree(check);
 
 }
 
