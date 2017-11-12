@@ -1,9 +1,19 @@
 /*
- * A sample, extra-simple block driver. Updated for kernel 2.6.31.
+ * An encrypted ram disk driver, adapted from simple block device by the
+ * following folks under the following licence:
  *
  * (C) 2003 Eklektix, Inc.
  * (C) 2010 Pat Patterson <pat at superpat dot com>
  * Redistributable under the terms of the GNU GPL.
+ *
+ *
+ * The people who performed this adapation ( (C) 2017  ) are:
+ *
+ *  Richard Cunard  &  Braxton Cuneo
+ *
+ * Who also offer this code under the terms of GNU GPL.
+ *
+ *
  */
 
 #include <linux/module.h>
@@ -18,6 +28,11 @@
 #include <linux/genhd.h>
 #include <linux/blkdev.h>
 #include <linux/hdreg.h>
+
+/* Needed Crypto Headers */
+#include <linux/crypto.h>
+#include <linux/err.h>
+#include <linux/scatterlist.h>
 
 MODULE_LICENSE("Dual BSD/GPL");
 static char *Version = "1.4";
