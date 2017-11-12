@@ -72,22 +72,44 @@ static struct cryptoram_device {
 
 
 
+static void cryptoram_cipher(	struct cryptoram_device *dev,
+      				u8 *plain, u8 *code, int len, int write)
+{
+
+	int i;
+	if (write){
+		for(i = 0; i < len; i+=dev->blk){
+			crypto_cipher_encrypt_one(	dev->ECB,
+			      				&(code[i]),
+							&(plain[i]));
+
+		}
+	}
+	else{
+		for(i = 0; i < len; i+=dev->blk){
+			crypto_cipher_decrypt_one(	dev->ECB,
+			      				&(plain[i]),
+							&(code[i]));
+		}
+	}
+
+}
+
+
 /*
  * Handle an I/O request.
  */
 static void cryptoram_transfer(struct cryptoram_device *dev, sector_t sector,
-		unsigned long nsect, char *buffer, int write) {
+	unsigned long nsect, char *buffer, int write) {
 	unsigned long offset = sector * logical_block_size;
 	unsigned long nbytes = nsect * logical_block_size;
 
 	if ((offset + nbytes) > dev->size) {
-		printk (KERN_NOTICE "cryptoram: Beyond-end write (%ld %ld)\n", offset, nbytes);
+		printk (KERN_NOTICE "cryptoram: Beyond-end write (%ld %ld)\n", 
+			offset, nbytes);
 		return;
 	}
-	if (write)
-		memcpy(dev->data + offset, buffer, nbytes);
-	else
-		memcpy(buffer, dev->data + offset, nbytes);
+	cryptoram_cipher(dev, buffer, dev->data + offset, nbytes,write);
 }
 
 static void cryptoram_request(struct request_queue *q) {
