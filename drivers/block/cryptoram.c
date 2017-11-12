@@ -61,9 +61,15 @@ static struct request_queue *Queue;
 static struct cryptoram_device {
 	unsigned long size;
 	spinlock_t lock;
+	struct crypto_cipher *ECB;
+	int blk;
 	u8 *data;
 	struct gendisk *gd;
 } Device;
+
+
+
+
 
 /*
  * Handle an I/O request.
