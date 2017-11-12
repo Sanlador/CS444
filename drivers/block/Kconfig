@@ -15,6 +15,11 @@ menuconfig BLK_DEV
 
 if BLK_DEV
 
+config CRYPTORAM
+	tristate "Encrypted RAM Disk Driver"
+	---help---
+	Stores data under a given key in a RAM disk
+
 config BLK_DEV_NULL_BLK
 	tristate "Null test block driver"
 
