@@ -6,7 +6,7 @@
 # 
 
 
-obj-$(CONFIG_CRYPTORAM) += cryptoram.o
+obj-$(CONFIG_BLK_DEV_CRYPTORAM) += cryptoram.o
 
 obj-$(CONFIG_MAC_FLOPPY)	+= swim3.o
 obj-$(CONFIG_BLK_DEV_SWIM)	+= swim_mod.o
