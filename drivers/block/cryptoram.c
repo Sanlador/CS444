@@ -251,7 +251,10 @@ static void __exit cryptoram_exit(void)
 	put_disk(Device.gd);
 	unregister_blkdev(major_num, "cryptoram");
 	blk_cleanup_queue(Queue);
+	crypto_free_cipher(Device.ECB);
 	vfree(Device.data);
 }
 
 module_init(cryptoram_init);
+module_exit(cryptoram_exit);
+
